@@ -1,7 +1,7 @@
-'use strict'
+"use strict";
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
-const Model = use('Model')
+const Model = use("Model");
 
 class Student extends Model {
     Class() {
@@ -9,8 +9,10 @@ class Student extends Model {
     }
 
     messages(){
-        return this.belongsToMany("App/Models/Message").pivoModel("App/Models/MessageStudent");
+        return this.belongsToMany("App/Models/Message").pivotModel(
+            "App/Models/MessageStudent"
+            );
     }
 }
 
-module.exports = Student
+module.exports = Student;

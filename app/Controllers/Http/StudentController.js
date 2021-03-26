@@ -5,6 +5,7 @@ class StudentController {
   async index({ request, response, params }) {
     const students = await Student.query()
     .where("class_id", params.class_id)
+    .with("messages")
     .fetch();
     return students;
   }
