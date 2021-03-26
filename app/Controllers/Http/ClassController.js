@@ -1,93 +1,47 @@
-'use strict'
+"use strict";
+const Class = use("App/Models/Class");
 
-/** @typedef {import('@adonisjs/framework/src/Request')} Request */
-/** @typedef {import('@adonisjs/framework/src/Response')} Response */
-/** @typedef {import('@adonisjs/framework/src/View')} View */
-
-/**
- * Resourceful controller for interacting with classes
- */
 class ClassController {
-  /**
-   * Show a list of all classes.
-   * GET classes
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index ({ request, response, view }) {
+  async index({ request, response, view }) {
+    const classes = await Class.query().with("students").fetch();
+    return classes;
   }
-
-  /**
-   * Render a form to be used for creating a new class.
-   * GET classes/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create ({ request, response, view }) {
-  }
-
-  /**
-   * Create/save a new class.
-   * POST classes
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
   async store ({ request, response }) {
+    const { name, course } = request.only(["name", "course"]);
+    const turma = await Class.create({ name, course});
+    return turma;
   }
-
-  /**
-   * Display a single class.
-   * GET classes/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
   async show ({ params, request, response, view }) {
+    try {
+      const turma = await Class.findByOrFail("id", params.id);
+      const students = await turma.students().fetch();
+      return Object.assign(turma, students);
+     } catch(error) {
+      return response
+        .status(error.status)
+        .json({error: "Turma não encontrada!"});
+    }
   }
-
-  /**
-   * Render a form to update an existing class.
-   * GET classes/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
+  async update({ params, request, response }) {
+    try {
+      const turma = await Class.findByOrFail("id", params.id);
+      const { name, course } = request.only(["name", "course"]);
+      turma.merge({ name, course});
+      await turma.save();
+      return turma;
+    } catch (error) {
+      response.status(error.status).json({error: "Turma não encontrada!"});
+    }
   }
-
-  /**
-   * Update class details.
-   * PUT or PATCH classes/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request, response }) {
-  }
-
-  /**
-   * Delete a class with id.
-   * DELETE classes/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
   async destroy ({ params, request, response }) {
+    try {
+      const turma = await Class.findByOrFail("id", params.id);
+      await turma.delete();
+      return response.json({ sucesso: "Turma removida!"});
+    } catch (error) {
+      response.status(error.status).json({error: "Turma não encontrada!"});
+    }
   }
 }
 
-module.exports = ClassController
+module.exports = ClassController;
